@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>傳承效果計算機</title>
+    <script>
+        function calculate() {
+            // 取得輸入數值並格式化為「萬」
+            function parseInputToWan(inputId) {
+                const value = parseFloat(document.getElementById(inputId).value) || 0;
+                return Math.round(value * 10000); // 將「萬」轉回原單位
+            }
+
+            const netInheritance = parseInputToWan('netInheritance');
+            const insurancePremium = parseInputToWan('insurancePremium');
+            const insurancePayout = parseInputToWan('insurancePayout');
+
+            // 稅率計算函數
+            function calculateTax(amount) {
+                if (amount <= 56210000) {
+                    return amount * 0.1;
+                } else if (amount <= 112420000) {
+                    return 56210000 * 0.1 + (amount - 56210000) * 0.15;
+                } else {
+                    return 56210000 * 0.1 + (56210000 * 0.15) + (amount - 112420000) * 0.2;
+                }
+            }
+
+            // 格式化為「萬」，移除多餘的小數點
+            function formatToWan(amount) {
+                return amount >= 10000 ? Math.round(amount / 10000) + '萬' : Math.round(amount);
+            }
+
+            // 沒規劃的計算
+            const taxableNoPlan = netInheritance;
+            const taxNoPlan = calculateTax(taxableNoPlan);
+            const totalNoPlan = taxableNoPlan - taxNoPlan;
+
+            // 壽險規劃的計算
+            const taxableInsurancePlan = netInheritance - insurancePremium;
+            const taxInsurancePlan = calculateTax(taxableInsurancePlan);
+            const totalInsurancePlan = taxableInsurancePlan - taxInsurancePlan + insurancePayout;
+
+            // 壽險抓回課稅的計算
+            const taxableGrabBack = netInheritance - insurancePremium;
+            const taxGrabBack = calculateTax(taxableGrabBack + insurancePayout);
+            const totalGrabBack = taxableGrabBack + insurancePayout - taxGrabBack;
+
+            // 顯示結果（表格格式）
+            document.getElementById('result').innerHTML = `
+                <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+                    <thead>
+                        <tr style="background-color: #FFE4C4; font-weight: bold; color: black;">
+                            <th>項目</th>
+                            <th>沒規劃情況</th>
+                            <th>壽險規劃情況</th>
+                            <th>壽險抓回課稅情況</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>遺產淨額</td>
+                            <td>${formatToWan(taxableNoPlan)}</td>
+                            <td>${formatToWan(taxableInsurancePlan)}</td>
+                            <td>${formatToWan(taxableGrabBack)}</td>
+                        </tr>
+                        <tr>
+                            <td>保險給付</td>
+                            <td>0</td>
+                            <td>${formatToWan(insurancePayout)}</td>
+                            <td>${formatToWan(insurancePayout)}</td>
+                        </tr>
+                        <tr>
+                            <td>遺產稅</td>
+                            <td>${formatToWan(taxNoPlan)}</td>
+                            <td>${formatToWan(taxInsurancePlan)}</td>
+                            <td>${formatToWan(taxGrabBack)}</td>
+                        </tr>
+                        <tr>
+                            <td>傳承總額</td>
+                            <td>${formatToWan(totalNoPlan)}</td>
+                            <td>${formatToWan(totalInsurancePlan)}</td>
+                            <td>${formatToWan(totalGrabBack)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // 初始化輸入框顯示「萬」的格式
+        function formatInputField() {
+            function addWanSuffix(inputId) {
+                const inputElement = document.getElementById(inputId);
+                inputElement.addEventListener('input', () => {
+                    const value = parseFloat(inputElement.value) || 0;
+                    inputElement.value = value > 0 ? Math.round(value) : value; // 只顯示整數
+                });
+            }
+            addWanSuffix('netInheritance');
+            addWanSuffix('insurancePremium');
+            addWanSuffix('insurancePayout');
+        }
+
+        window.onload = formatInputField;
+    </script>
+</head>
+<body>
+    <h1>傳承效果計算機</h1>
+    <p>請輸入以下數據（單位：萬）進行計算：</p>
+    <form onsubmit="event.preventDefault(); calculate();">
+        <label for="netInheritance">遺產淨額（萬）：</label>
+        <input type="number" id="netInheritance" placeholder="例如：300"><br><br>
+
+        <label for="insurancePremium">壽險保費（萬）：</label>
+        <input type="number" id="insurancePremium" placeholder="例如：200"><br><br>
+
+        <label for="insurancePayout">壽險保額（萬）：</label>
+        <input type="number" id="insurancePayout" placeholder="例如：400"><br><br>
+
+        <button type="submit">計算</button>
+    </form>
+
+    <h2>計算結果</h2>
+    <div id="result">請輸入數據後點擊「計算」以查看結果。</div>
+</body>
+</html>
